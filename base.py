@@ -10,26 +10,27 @@ output_path: str = '$ '  # 터미널에 출력될 경로
 temp_root_dir: str
 temp_home_dir: str
 
-def inspect_path(input_path: str) -> str:
-    # 절대 경로가 주어진 경우 temp_root_dir을 앞에 붙여 제한된 디렉토리 내로 경로를 고정
-    if os.path.isabs(input_path):
-        # 절대 경로가 주어진 경우 temp_root_dir을 앞에 붙여 제한된 디렉토리 내로 경로를 고정
-        return os.path.join(temp_root_dir, os.path.relpath(input_path, '/'))
-    return input_path
-
 def execute_command(input_command: str, allowed_commands: List[str]) -> str:
-    """
-    명령어를 실행하고 결과를 반환
+    '''
+    입력받은 명령어를 실행하고 결과를 문자열로 반환
 
-    - params:
-        - command: 사용자가 입력한 명령어
-        - allowed_commands: 허용된 명령어 목록
-    """
-    global output_path
+    Params
+    ------
+    input_command: str
+        실행할 명령어
+    allowed_commands: List[str]
+        허용된 명령어 목록
+    
+    Returns
+    -------
+    if 명령어 정상 작동:
+        실행된 명령어의 결과
+    else:
+        error message
+    '''
+    global output_path  # 명령어 실행 결과를 저장하는 경로
     try:
-        current_dir_path: str = os.getcwd()  # 현재 작업 디렉토리의 절대경로 문자열로 반환
-
-        # 입력받은 명령어를 공백을 기준으로 나누어 리스트로 변환
+        current_dir_path: str = os.getcwd()
         command_parts: List[str] = input_command.split(' ')
 
         # 허용된 명령어인지 확인
@@ -41,18 +42,24 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
         else:
             for i, part in enumerate(command_parts):
                 if part.startswith('/'):
-                    command_parts[i] = inspect_path(part)
-
+                    # print(command_parts[i])
+                    command_parts[i] = os.path.join(temp_root_dir, os.path.relpath(part, '/'))
+                    # print(command_parts[i])
+                        # mkdir /etc -> temp_root_dir/etc   
             print(command_parts)
 
             # 명령어 실행
-            result: subprocess.CompletedProcess = subprocess.run(command_parts, capture_output=True, text=True)
+            result: subprocess.CompletedProcess = subprocess.run(command_parts, 
+                                                                 capture_output=True, 
+                                                                 text=True,
+                                                                 shell=True
+                                                                 )
             # 명령어 실행 결과가 정상이 아닌 경우 에러 메세지 리턴
             if result.returncode != 0:
                 return f"Error: {result.stderr}"
-
-            # 명령어 실행 결과가 정상인 경우 결과 리턴
-            return result.stdout
+            else:
+                return result.stdout
+            
     except Exception as e:
         return str(e)
     finally:
@@ -105,7 +112,7 @@ def main():
     global output_path, temp_root_dir, temp_home_dir
 
     # 제한된 디렉토리 경로
-    restricted_dir: str = "/Users/kojinhyeok/linuxApp"
+    restricted_dir: str = "./Users"
 
     # 임시 디렉토리 생성
     if not os.path.exists(restricted_dir):
@@ -122,7 +129,7 @@ def main():
     print("종료하려면 'exit'을 입력")
 
     # 허용된 명령어 목록 정의
-    allowed_commands: List[str] = ['ifconfig', 'ls', 'pwd', 'echo', 'cat', 'touch', 'mkdir', 'cd']
+    allowed_commands: List[str] = ['dir', 'ifconfig', 'ls', 'pwd', 'echo', 'cat', 'touch', 'mkdir', 'cd']
 
     try:
         while True:
@@ -139,3 +146,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    os.path.abspath
