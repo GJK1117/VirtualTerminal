@@ -105,6 +105,28 @@ def command_cd(command_parts, current_dir_path):
         output_path = os.getcwd() + ' $ '
         return f"Changed directory to {temp_home_dir}"
 
+def set_output_path(current_path: str) -> str:
+    """
+    현재 디렉토리 경로를 받아서 출력할 현재 사용자의 경로를 설정
+
+    Params
+    ------
+    current_path: str
+        현재 디렉토리 경로
+    
+    Returns
+    -------
+    str
+        출력할 경로 문자열
+    """
+    global temp_home_dir, temp_root_dir
+    # 출력할 현재 경로 값 설정
+    # 현재 경로가 루트 경로일 경우  ex) current_path: /User -> /
+    # 그 외의 경우 홈 디렉토리 경로를 '~'로 대체    ex) current_path: User/home/tmp/aaa -> ~/aaa
+    # 홈 디렉토리 보다 상위 디렉토리일 경우 루트 디렉토리를 빈 문자열로 치환  ex) current_path: User/home -> ~/home
+    # ++ 홈 디렉토리가 루트 디렉토리보다 하위 디렉토리 이므로 먼저 replace 를 수행
+    # ++ 홈 디렉토리보다 상위 디렉토리 일경우 첫 번째 replace 는 변경하지 않고 두번째 replace 로 루트 디렉토리를 빈 문자열로 치환
+    return '/' if current_path == temp_root_dir else current_path.replace(temp_home_dir, '~').replace(temp_root_dir, '')
 
 def main():
     global output_path, temp_root_dir, temp_home_dir
@@ -119,6 +141,8 @@ def main():
     os.makedirs(temp_home_dir)
     os.chdir(temp_home_dir)
 
+    output_path = '~'
+
 
     print(f"Temporary Home Directory: {temp_home_dir}")
     print(f"Temporary Root Directory: {temp_root_dir}")
@@ -130,7 +154,7 @@ def main():
     try:
         while True:
             # input_command: str = input(username + '@' + hostname + ':' + output_path)
-            input_command = input(username + '@' + hostname + ':' + output_path + '$')
+            input_command: str = input(username + '@' + hostname + ':' + output_path + '$ ')
             if input_command.lower() == 'exit':
                 print("종료")
                 break
