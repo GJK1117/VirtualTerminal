@@ -16,17 +16,17 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
 
     Params
     ------
-    input_command: str
-        실행할 명령어
-    allowed_commands: List[str]
-        허용된 명령어 목록
+        - input_command: str
+            실행할 명령어
+        - allowed_commands: List[str]
+            허용된 명령어 목록
     
     Returns
     -------
-    if 명령어 정상 작동:
-        실행된 명령어의 결과
-    else:
-        error message
+        - if 명령어 정상 작동:
+            실행된 명령어의 결과
+        - else:
+            error message
     '''
     global output_path  # 명령어 실행 결과를 저장하는 경로
     try:
@@ -42,17 +42,15 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
         else:
             for i, part in enumerate(command_parts):
                 if part.startswith('/'):
-                    # print(command_parts[i])
                     command_parts[i] = os.path.join(temp_root_dir, os.path.relpath(part, '/'))
-                    # print(command_parts[i])
-                        # mkdir /etc -> temp_root_dir/etc   
             print(command_parts)
 
+            command_parts = ' '.join(command_parts)
             # 명령어 실행
             result: subprocess.CompletedProcess = subprocess.run(command_parts, 
                                                                  capture_output=True, 
                                                                  text=True,
-                                                                 shell=False
+                                                                 shell=True
                                                                  )
             # 명령어 실행 결과가 정상이 아닌 경우 에러 메세지 리턴
             if result.returncode != 0:
@@ -64,15 +62,19 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
         return str(e)
 
 
-def command_cd(command_parts, current_dir_path):
+def command_cd(command_parts: List[str], current_dir_path: str):
     """
     'cd' 명령어를 처리하고 디렉토리를 변경
 
-    - params:
-        - command_parts: 'cd' 명령어와 인자를 포함하는 리스트
-        - current_dir_path: 현재 작업 디렉토리의 절대경로 문자열
+    Params
+    ------
+        - command_parts: List[str]
+            'cd' 명령어와 인자를 포함하는 리스트
+        - current_dir_path: str
+            현재 작업 디렉토리의 절대경로 문자열
 
-    - return:
+    Returns
+    -------
         - 명령어 실행 결과 문자열
     """
     global output_path
