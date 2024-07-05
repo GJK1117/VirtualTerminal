@@ -11,24 +11,22 @@ temp_root_dir: str = ''
 temp_home_dir: str = ''
 
 def execute_command(input_command: str, allowed_commands: List[str]) -> str:
-    '''
-    입력받은 명령어를 실행하고 결과를 문자열로 반환
+    """
+    입력된 명령어를 실행하고 결과를 반환
 
-    Params
+    Parameters
     ------
     input_command: str
-        실행할 명령어
+        사용자가 입력한 명령어 문자열
     allowed_commands: List[str]
-        허용된 명령어 목록
-    
+        허용된 명령어 문자열 리스트
+
     Returns
     -------
-    if 명령어 정상 작동:
-        실행된 명령어의 결과
-    else:
-        error message
-    '''
-    global output_path  # 명령어 실행 결과를 저장하는 경로
+    str
+        명령어 실행 결과 문자열 또는 에러 메세지
+    """
+    global temp_root_dir, temp_home_dir
     try:
         current_dir_path: str = os.getcwd()
         command_parts: List[str] = input_command.split(' ')
@@ -42,10 +40,8 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
         else:
             for i, part in enumerate(command_parts):
                 if part.startswith('/'):
-                    # print(command_parts[i])
                     command_parts[i] = os.path.join(temp_root_dir, os.path.relpath(part, '/'))
-                    # print(command_parts[i])
-                        # mkdir /etc -> temp_root_dir/etc   
+                    # ex) mkdir /etc -> temp_root_dir/etc
             print(command_parts)
 
             # 명령어 실행
@@ -64,18 +60,23 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
         return str(e)
 
 
-def command_cd(command_parts, current_dir_path):
+def command_cd(command_parts: List[str], current_dir_path: str):
     """
     'cd' 명령어를 처리하고 디렉토리를 변경
 
-    - params:
-        - command_parts: 'cd' 명령어와 인자를 포함하는 리스트
-        - current_dir_path: 현재 작업 디렉토리의 절대경로 문자열
+    Parameters
+    ------
+    command_parts: List[str]
+        'cd' 명령어와 인자를 포함하는 리스트
+    current_dir_path: str
+        현재 작업 디렉토리의 절대경로 문자열
 
-    - return:
-        - 명령어 실행 결과 문자열
+    Returns
+    -------
+    str
+        명령어 실행 결과 문자열
     """
-    global output_path
+    global output_path, temp_root_dir, temp_home_dir
     if len(command_parts) > 1:
         target_dir = command_parts[1]
         if target_dir == '/':
@@ -94,16 +95,13 @@ def command_cd(command_parts, current_dir_path):
             if not new_path.startswith(temp_root_dir):
                 # 새로운 경로가 temp_root_dir 내에 있는지 확인
                 return f"{new_path} 경로는 허용되지 않습니다."
-
-        # 작업 디렉토리를 새로운 경로로 변경
-        os.chdir(new_path)
-        output_path = os.getcwd() + ' $ '
-        return f"Changed directory to {new_path}"
     else:
-        # 인자가 없는 'cd' 명령어의 경우 temp_home_dir로 이동
-        os.chdir(temp_home_dir)
-        output_path = os.getcwd() + ' $ '
-        return f"Changed directory to {temp_home_dir}"
+        # 'cd' 명령어만 입력된 경우 홈 디렉토리로 이동
+        new_path = temp_home_dir
+
+    os.chdir(new_path)  # 디렉토리 변경
+    output_path = set_output_path(os.getcwd())  # 출력할 경로 설정
+    return f"Changed directory to {new_path}"
 
 def set_output_path(current_path: str) -> str:
     """
