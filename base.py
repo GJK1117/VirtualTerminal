@@ -62,8 +62,6 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
             
     except Exception as e:
         return str(e)
-    finally:
-        output_path = os.getcwd() + ' $ '
 
 
 def command_cd(command_parts, current_dir_path):
@@ -113,10 +111,6 @@ def main():
 
     # 제한된 디렉토리 경로
     restricted_dir: str = "."
-
-    # 임시 디렉토리 생성
-    # if not os.path.exists(restricted_dir):
-    #     os.makedirs(restricted_dir)
 
     temp_dir: str = tempfile.mkdtemp(prefix=username+'_', dir=restricted_dir)
     temp_root_dir = os.path.abspath(temp_dir)
