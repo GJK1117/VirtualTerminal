@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shlex
 import tempfile
 import shutil
 from typing import List
@@ -31,7 +32,7 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
     global output_path  # 명령어 실행 결과를 저장하는 경로
     try:
         current_dir_path: str = os.getcwd()
-        command_parts: List[str] = input_command.split(' ')
+        command_parts: List[str] = shlex.split(input_command)
 
         # 허용된 명령어인지 확인
         if command_parts[0] not in allowed_commands:
@@ -86,6 +87,8 @@ def command_cd(command_parts: List[str], current_dir_path: str):
         elif target_dir == '~':
             # 'cd ~' 명령어가 입력된 경우 temp_root_dir/home/username으로 이동
             new_path = temp_home_dir
+        elif target_dir == '.':
+            return current_dir_path
         else:
             # 상대 경로나 다른 절대 경로가 입력된 경우
             # os.path.join 함수는 입력된 경로들 중 가장 마지막에 위치한 절대 경로를 기준으로 그 이후의 경로들을 결합
@@ -99,14 +102,13 @@ def command_cd(command_parts: List[str], current_dir_path: str):
 
         # 작업 디렉토리를 새로운 경로로 변경
         os.chdir(new_path)
-        output_path = os.getcwd() + ' $ '
+        # output_path = os.getcwd() + ' $ '
         return f"Changed directory to {new_path}"
     else:
         # 인자가 없는 'cd' 명령어의 경우 temp_home_dir로 이동
         os.chdir(temp_home_dir)
-        output_path = os.getcwd() + ' $ '
+        output_path = os.getcwd()
         return f"Changed directory to {temp_home_dir}"
-
 
 def main():
     global output_path, temp_root_dir, temp_home_dir
