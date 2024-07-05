@@ -4,11 +4,11 @@ import tempfile
 import shutil
 from typing import List
 
-username: str = 'user'
+username: str = 'tmp'
 hostname: str = 'host'
-output_path: str = '$ '  # 터미널에 출력될 경로
-temp_root_dir: str
-temp_home_dir: str
+output_path: str = ''  # 터미널에 출력될 경로
+temp_root_dir: str = ''
+temp_home_dir: str = ''
 
 def execute_command(input_command: str, allowed_commands: List[str]) -> str:
     '''
@@ -52,7 +52,7 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
             result: subprocess.CompletedProcess = subprocess.run(command_parts, 
                                                                  capture_output=True, 
                                                                  text=True,
-                                                                 shell=True
+                                                                 shell=False
                                                                  )
             # 명령어 실행 결과가 정상이 아닌 경우 에러 메세지 리턴
             if result.returncode != 0:
@@ -112,20 +112,22 @@ def main():
     global output_path, temp_root_dir, temp_home_dir
 
     # 제한된 디렉토리 경로
-    restricted_dir: str = "./Users"
+    restricted_dir: str = "."
 
     # 임시 디렉토리 생성
-    if not os.path.exists(restricted_dir):
-        os.makedirs(restricted_dir)
+    # if not os.path.exists(restricted_dir):
+    #     os.makedirs(restricted_dir)
 
     temp_dir: str = tempfile.mkdtemp(prefix=username+'_', dir=restricted_dir)
-    home_dir: str = os.path.join(temp_dir, "home", username)
-    os.makedirs(home_dir)
-    os.chdir(home_dir)
-
     temp_root_dir = os.path.abspath(temp_dir)
-    temp_home_dir = home_dir
+    
+    temp_home_dir = os.path.join(temp_root_dir, "home", username)
+    os.makedirs(temp_home_dir)
+    os.chdir(temp_home_dir)
 
+
+    print(f"Temporary Home Directory: {temp_home_dir}")
+    print(f"Temporary Root Directory: {temp_root_dir}")
     print("종료하려면 'exit'을 입력")
 
     # 허용된 명령어 목록 정의
@@ -133,7 +135,8 @@ def main():
 
     try:
         while True:
-            input_command: str = input(username + '@' + hostname + ':' + output_path)
+            # input_command: str = input(username + '@' + hostname + ':' + output_path)
+            input_command = input(username + '@' + hostname + ':' + output_path + '$')
             if input_command.lower() == 'exit':
                 print("종료")
                 break
@@ -141,9 +144,7 @@ def main():
             print(output)
     finally:
         # 임시 디렉토리 삭제
-        shutil.rmtree(temp_dir)
-
+        shutil.rmtree(temp_root_dir)
 
 if __name__ == "__main__":
     main()
-    os.path.abspath
