@@ -1,6 +1,5 @@
 import os
 import subprocess
-import shlex
 import tempfile
 import shutil
 from typing import List
@@ -12,27 +11,25 @@ temp_root_dir: str = ''
 temp_home_dir: str = ''
 
 def execute_command(input_command: str, allowed_commands: List[str]) -> str:
-    '''
-    입력받은 명령어를 실행하고 결과를 문자열로 반환
+    """
+    입력된 명령어를 실행하고 결과를 반환
 
     Params
     ------
-        - input_command: str
-            실행할 명령어
-        - allowed_commands: List[str]
-            허용된 명령어 목록
-    
+    input_command: str
+        사용자가 입력한 명령어 문자열
+    allowed_commands: List[str]
+        허용된 명령어 문자열 리스트
+
     Returns
     -------
-        - if 명령어 정상 작동:
-            실행된 명령어의 결과
-        - else:
-            error message
-    '''
-    global output_path  # 명령어 실행 결과를 저장하는 경로
+    str
+        명령어 실행 결과 문자열 또는 에러 메세지
+    """
+    global temp_root_dir, temp_home_dir
     try:
         current_dir_path: str = os.getcwd()
-        command_parts: List[str] = shlex.split(input_command)
+        command_parts: List[str] = input_command.split(' ')
 
         # 허용된 명령어인지 확인
         if command_parts[0] not in allowed_commands:
@@ -44,14 +41,14 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
             for i, part in enumerate(command_parts):
                 if part.startswith('/'):
                     command_parts[i] = os.path.join(temp_root_dir, os.path.relpath(part, '/'))
+                    # ex) mkdir /etc -> temp_root_dir/etc
             print(command_parts)
 
-            command_parts = ' '.join(command_parts)
             # 명령어 실행
             result: subprocess.CompletedProcess = subprocess.run(command_parts, 
                                                                  capture_output=True, 
                                                                  text=True,
-                                                                 shell=True
+                                                                 shell=False
                                                                  )
             # 명령어 실행 결과가 정상이 아닌 경우 에러 메세지 리턴
             if result.returncode != 0:
@@ -69,16 +66,17 @@ def command_cd(command_parts: List[str], current_dir_path: str):
 
     Params
     ------
-        - command_parts: List[str]
-            'cd' 명령어와 인자를 포함하는 리스트
-        - current_dir_path: str
-            현재 작업 디렉토리의 절대경로 문자열
+    command_parts: List[str]
+        'cd' 명령어와 인자를 포함하는 리스트
+    current_dir_path: str
+        현재 작업 디렉토리의 절대경로 문자열
 
     Returns
     -------
-        - 명령어 실행 결과 문자열
+    str
+        명령어 실행 결과 문자열
     """
-    global output_path
+    global output_path, temp_root_dir, temp_home_dir
     if len(command_parts) > 1:
         target_dir = command_parts[1]
         if target_dir == '/':
@@ -87,8 +85,6 @@ def command_cd(command_parts: List[str], current_dir_path: str):
         elif target_dir == '~':
             # 'cd ~' 명령어가 입력된 경우 temp_root_dir/home/username으로 이동
             new_path = temp_home_dir
-        elif target_dir == '.':
-            return current_dir_path
         else:
             # 상대 경로나 다른 절대 경로가 입력된 경우
             # os.path.join 함수는 입력된 경로들 중 가장 마지막에 위치한 절대 경로를 기준으로 그 이후의 경로들을 결합
@@ -99,16 +95,36 @@ def command_cd(command_parts: List[str], current_dir_path: str):
             if not new_path.startswith(temp_root_dir):
                 # 새로운 경로가 temp_root_dir 내에 있는지 확인
                 return f"{new_path} 경로는 허용되지 않습니다."
-
-        # 작업 디렉토리를 새로운 경로로 변경
-        os.chdir(new_path)
-        # return f"Changed directory to {new_path}"
-        return new_path
     else:
-        # 인자가 없는 'cd' 명령어의 경우 temp_home_dir로 이동
-        os.chdir(temp_home_dir)
-        output_path = os.getcwd()
-        return f"Changed directory to {temp_home_dir}"
+        # 'cd' 명령어만 입력된 경우 홈 디렉토리로 이동
+        new_path = temp_home_dir
+
+    os.chdir(new_path)  # 디렉토리 변경
+    output_path = set_output_path(os.getcwd())  # 출력할 경로 설정
+    return f"Changed directory to {new_path}"
+
+def set_output_path(current_path: str) -> str:
+    """
+    현재 디렉토리 경로를 받아서 출력할 현재 사용자의 경로를 설정
+
+    Params
+    ------
+    current_path: str
+        현재 디렉토리 경로
+    
+    Returns
+    -------
+    str
+        출력할 경로 문자열
+    """
+    global temp_home_dir, temp_root_dir
+    # 출력할 현재 경로 값 설정
+    # 현재 경로가 루트 경로일 경우  ex) current_path: /User -> /
+    # 그 외의 경우 홈 디렉토리 경로를 '~'로 대체    ex) current_path: User/home/tmp/aaa -> ~/aaa
+    # 홈 디렉토리 보다 상위 디렉토리일 경우 루트 디렉토리를 빈 문자열로 치환  ex) current_path: User/home -> ~/home
+    # ++ 홈 디렉토리가 루트 디렉토리보다 하위 디렉토리 이므로 먼저 replace 를 수행
+    # ++ 홈 디렉토리보다 상위 디렉토리 일경우 첫 번째 replace 는 변경하지 않고 두번째 replace 로 루트 디렉토리를 빈 문자열로 치환
+    return '/' if current_path == temp_root_dir else current_path.replace(temp_home_dir, '~').replace(temp_root_dir, '')
 
 def main():
     global output_path, temp_root_dir, temp_home_dir
@@ -123,6 +139,8 @@ def main():
     os.makedirs(temp_home_dir)
     os.chdir(temp_home_dir)
 
+    output_path = '~'
+
 
     print(f"Temporary Home Directory: {temp_home_dir}")
     print(f"Temporary Root Directory: {temp_root_dir}")
@@ -134,7 +152,7 @@ def main():
     try:
         while True:
             # input_command: str = input(username + '@' + hostname + ':' + output_path)
-            input_command = input(username + '@' + hostname + ':' + output_path + '$')
+            input_command: str = input(username + '@' + hostname + ':' + output_path + '$ ')
             if input_command.lower() == 'exit':
                 print("종료")
                 break
