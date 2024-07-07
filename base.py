@@ -102,8 +102,8 @@ def command_cd(command_parts: List[str], current_dir_path: str):
 
         # 작업 디렉토리를 새로운 경로로 변경
         os.chdir(new_path)
-        # output_path = os.getcwd() + ' $ '
-        return f"Changed directory to {new_path}"
+        # return f"Changed directory to {new_path}"
+        return new_path
     else:
         # 인자가 없는 'cd' 명령어의 경우 temp_home_dir로 이동
         os.chdir(temp_home_dir)
