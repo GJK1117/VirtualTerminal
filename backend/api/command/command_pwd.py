@@ -1,14 +1,10 @@
 import subprocess
 from typing import List
-
-from VirtualTerminal.settings import get_user_instance
-
 from api.command.command import Command
 from api.user import User
 
-
 class Command_PWD(Command):
-    def execute_command(self, user: User, command_parts: List[str], allowed_commands: List[str], template=None) -> str:
+    def execute_command(self, user: User, command_parts: List[str], template=None) -> str:
         new_path: subprocess.CompletedProcess = subprocess.run(command_parts,
                                                              capture_output=True,
                                                              text=True,

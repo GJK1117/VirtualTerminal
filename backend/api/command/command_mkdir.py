@@ -5,7 +5,7 @@ from api.command.command import Command
 from api.user import User
 
 class Command_MKDIR(Command):
-    def execute_command(self, user: User, command_part: List[str], allowed_commands: List[str], template=None) -> str:
+    def execute_command(self, user: User, command_part: List[str], template=None) -> str:
         for i, part in enumerate(command_part):
             if part.startswith('/'):
                 command_part[i] = os.path.join(user.temp_root_dir, os.path.relpath(part, '/'))

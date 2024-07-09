@@ -3,10 +3,9 @@ from typing import List
 from api.command.command import Command
 from api.user import User
 
-
 class Command_CD(Command):
 
-    def execute_command(self, user: User, command_parts: List[str], allowed_commands: List[str], template=None) -> str:
+    def execute_command(self, user: User, command_parts: List[str], template=None) -> str:
         current_dir_path: str = os.getcwd()
         try:
             if len(command_parts) > 1:
