@@ -14,7 +14,7 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
     """
     입력된 명령어를 실행하고 결과를 반환
 
-    Params
+    Parameters
     ------
     input_command: str
         사용자가 입력한 명령어 문자열
@@ -48,8 +48,7 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
             result: subprocess.CompletedProcess = subprocess.run(command_parts, 
                                                                  capture_output=True, 
                                                                  text=True,
-                                                                 shell=False,
-                                                                #  executable="/bin/bash",
+                                                                 shell=False
                                                                  )
             # 명령어 실행 결과가 정상이 아닌 경우 에러 메세지 리턴
             if result.returncode != 0:
@@ -61,11 +60,11 @@ def execute_command(input_command: str, allowed_commands: List[str]) -> str:
         return str(e)
 
 
-def command_cd(command_parts: List[str], current_dir_path: str) -> str:
+def command_cd(command_parts: List[str], current_dir_path: str):
     """
     'cd' 명령어를 처리하고 디렉토리를 변경
 
-    Params
+    Parameters
     ------
     command_parts: List[str]
         'cd' 명령어와 인자를 포함하는 리스트
@@ -100,8 +99,8 @@ def command_cd(command_parts: List[str], current_dir_path: str) -> str:
         # 'cd' 명령어만 입력된 경우 홈 디렉토리로 이동
         new_path = temp_home_dir
 
-    os.chdir(new_path)
-    output_path = set_output_path(os.getcwd())
+    os.chdir(new_path)  # 디렉토리 변경
+    output_path = set_output_path(os.getcwd())  # 출력할 경로 설정
     return f"Changed directory to {new_path}"
 
 def set_output_path(current_path: str) -> str:
@@ -152,6 +151,7 @@ def main():
 
     try:
         while True:
+            # input_command: str = input(username + '@' + hostname + ':' + output_path)
             input_command: str = input(username + '@' + hostname + ':' + output_path + '$ ')
             if input_command.lower() == 'exit':
                 print("종료")
