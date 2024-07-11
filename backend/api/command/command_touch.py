@@ -3,34 +3,26 @@ import subprocess
 from typing import List
 from api.command.command import Command
 from api.user import User
-import glob
 
-class Command_LS(Command):
+class Command_TOUCH(Command):
     def execute_command(self, user: User, command_parts: List[str], template=None) -> str:
         try:
-            updated_command_parts = [command_parts[0]]
-
-            for part in command_parts[1:]:
+            for i, part in enumerate(command_parts[1:]):
                 if part.startswith('/'):
-                    part = os.path.join(user.temp_root_dir, os.path.relpath(part, '/'))
+                    command_parts[i+1] = os.path.join(user.temp_root_dir, os.path.relpath(part, '/'))
                 elif part.startswith('~'):
-                    part = os.path.join(user.temp_home_dir, part[1:])
-
-                expanded_parts = glob.glob(part)
-                if expanded_parts:
-                    updated_command_parts.extend(expanded_parts)
-                else:
-                    updated_command_parts.append(part)
+                    command_parts[i+1] = os.path.join(user.temp_home_dir, part[1:])
 
             result: subprocess.CompletedProcess = subprocess.run(
-                updated_command_parts,
+                command_parts,
                 capture_output=True,
                 check=True,
                 text=True,
             )
 
-            return result.stdout.rstrip()
-
+            # return None
+            return f"file created"
+                
         except subprocess.CalledProcessError as e:
             file_path = None
             for part in command_parts:
@@ -41,4 +33,4 @@ class Command_LS(Command):
             if not file_path:
                 file_path = command_parts[-1]
 
-            return f"ls: '{file_path}'에 접근할 수 없음: 그런 파일이나 디렉터리가 없습니다"
+            return f"touch: '{file_path}'에 touch 명령 실행 불가: 그런 파일이나 디렉터리가 없습니다"
